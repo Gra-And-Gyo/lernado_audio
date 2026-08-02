@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Szókártyák gyakorló modul</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14202B;
+    --bg-panel: #1C2E3D;
+    --paper: #EFE9DD;
+    --paper-ink: #1F2A33;
+    --ink-light: #E8E2D3;
+    --ink-muted: #93A3AE;
+    --blue: #4A7FA5;
+    --blue-dark: #3A6685;
+    --red: #B84A3E;
+    --red-dark: #9C3B31;
+    --green: #4C8C5E;
+    --green-dark: #3C7049;
+    --gold: #C9A24B;
+    --radius: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(74,127,165,0.12), transparent 55%),
+      radial-gradient(ellipse at 90% 110%, rgba(201,162,75,0.08), transparent 50%),
+      var(--bg);
+    color: var(--ink-light);
+    font-family: 'IBM Plex Mono', monospace;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 32px 16px 64px;
+  }
+
+  .eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(24px, 4vw, 34px);
+    margin: 0 0 4px;
+    color: var(--ink-light);
+  }
+
+  .course-lesson{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    text-align:center;
+    margin-bottom: 8px;
+  }
+
+  .subtitle{
+    color: var(--ink-muted);
+    font-size: 13px;
+    margin-bottom: 36px;
+    text-align:center;
+  }
+
+  /* ---------- MENU SCREEN ---------- */
+  .menu{
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .toc{
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    border: 1px solid rgba(232,226,211,0.08);
+    overflow:hidden;
+  }
+
+  .toc-item{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(232,226,211,0.08);
+    cursor:pointer;
+    transition: background 0.15s ease;
+    background:none;
+    border-left:none; border-right:none; border-top:none;
+    width:100%;
+    text-align:left;
+    color: var(--ink-light);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .toc-item:last-child{ border-bottom:none; }
+  .toc-item:hover:not(:disabled){ background: rgba(74,127,165,0.12); }
+  .toc-item:disabled{ opacity:0.35; cursor:not-allowed; }
+
+  .toc-num{
+    font-family:'Fraunces', serif;
+    font-size: 22px;
+    color: var(--gold);
+    min-width: 28px;
+  }
+
+  .toc-text{ flex:1; }
+  .toc-title{ font-family:'Fraunces', serif; font-size:16px; color:var(--ink-light); }
+  .toc-desc{ font-size: 11.5px; color: var(--ink-muted); margin-top:3px; line-height:1.5; }
+
+  .toc-arrow{ color: var(--ink-muted); font-size:18px; }
+
+  /* ---------- STAGE ---------- */
+  .stage{
+    width:100%;
+    max-width: 460px;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+  }
+  .stage.active{ display:flex; }
+
+  .stage-header{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 18px;
+  }
+
+  .back-link{
+    background:none; border:none;
+    color: var(--ink-muted);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    cursor:pointer;
+    letter-spacing:0.05em;
+  }
+  .back-link:hover{ color: var(--ink-light); }
+
+  .round-tag{
+    font-size:11px;
+    color: var(--ink-muted);
+    letter-spacing:0.08em;
+  }
+
+  .progress-track{
+    width:100%;
+    height:4px;
+    background: rgba(232,226,211,0.1);
+    border-radius:2px;
+    margin-bottom: 34px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background: var(--gold);
+    width:0%;
+    transition: width 0.35s ease;
+  }
+
+  .task-instruction{
+    width:100%;
+    max-width: 360px;
+    text-align:center;
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height:1.5;
+    margin: -20px auto 28px;
+  }
+
+  /* ---------- CARD ---------- */
+  #t1-playarea, #t2-playarea, #t3-playarea{
+    width: 100%;
+  }
+
+  .card-wrap{
+    perspective: 1400px;
+    -webkit-perspective: 1400px;
+    width: 100%;
+    max-width: 360px;
+    height: 320px;
+    margin: 0 auto;
+  }
+
+  .card{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+  }
+  .card.flipped{ transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
+
+  .face{
+    position:absolute;
+    top:0; left:0; right:0; bottom:0;
+    width:100%;
+    height:100%;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-radius: var(--radius);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 2px 0 rgba(0,0,0,0.05);
+    display:flex;
+    flex-direction:column;
+    padding: 22px 24px;
+  }
+
+  .face.back{ transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
+
+  .catalog-tab{
+    display:flex;
+    justify-content:space-between;
+    font-size: 10.5px;
+    letter-spacing:0.1em;
+    color: #8A7A5E;
+    text-transform:uppercase;
+    border-bottom: 1px dashed rgba(31,42,51,0.18);
+    padding-bottom:10px;
+    margin-bottom:auto;
+  }
+
+  .card-center{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    flex:1;
+    gap: 18px;
+    text-align:center;
+  }
+
+  .word{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(20px, 6.5vw, 30px);
+    line-height:1.2;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .meaning{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: clamp(18px, 5.5vw, 26px);
+    line-height:1.2;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .speaker-btn{
+    width:52px; height:52px;
+    border-radius:50%;
+    border: 1.5px solid rgba(31,42,51,0.25);
+    background: rgba(31,42,51,0.05);
+    color: var(--paper-ink);
+    font-size: 22px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .speaker-btn:hover{ background: rgba(31,42,51,0.12); transform: scale(1.05); }
+  .speaker-btn:active{ transform: scale(0.95); }
+  .speaker-btn.speaking{ animation: pulse 0.6s ease infinite alternate; }
+  @keyframes pulse{ from{ box-shadow:0 0 0 0 rgba(74,127,165,0.4);} to{ box-shadow:0 0 0 8px rgba(74,127,165,0);} }
+
+  .card-footnote{
+    text-align:center;
+    font-size:11px;
+    color:#8A7A5E;
+    letter-spacing:0.05em;
+    margin-top:auto;
+  }
+
+  /* ---------- BUTTON BAR ---------- */
+  .btn-bar{
+    width:100%;
+    max-width:360px;
+    margin: 26px auto 0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    min-height: 52px;
+  }
+
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    border:none;
+    border-radius: 8px;
+    padding: 14px 18px;
+    cursor:pointer;
+    color: white;
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  .btn:hover{ filter:brightness(1.08); }
+  .btn:active{ transform: translateY(1px); }
+
+  .btn-turn{ background: var(--blue); box-shadow: 0 4px 0 var(--blue-dark); }
+  .btn-turn:active{ box-shadow: 0 2px 0 var(--blue-dark); }
+
+  .btn-wrong{ background: var(--red); box-shadow: 0 4px 0 var(--red-dark); }
+  .btn-wrong:active{ box-shadow: 0 2px 0 var(--red-dark); }
+
+  .btn-correct{ background: var(--green); box-shadow: 0 4px 0 var(--green-dark); }
+  .btn-correct:active{ box-shadow: 0 2px 0 var(--green-dark); }
+
+  .btn-ghost{ visibility:hidden; }
+
+  .btn-answer{
+    max-width: 118px;
+    font-size: 10.5px;
+    line-height: 1.35;
+    padding: 12px 10px;
+    text-align:center;
+  }
+
+  /* ---------- TASK 2 (SPELLING) ---------- */
+  .spell-panel{
+    width:100%;
+    max-width:360px;
+    margin: 0 auto;
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-radius: var(--radius);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    padding: 32px 26px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 22px;
+  }
+
+  .spell-input{
+    width:100%;
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    text-align:center;
+    padding: 12px 10px;
+    border-radius:8px;
+    border: 1.5px solid rgba(31,42,51,0.25);
+    background: rgba(255,255,255,0.6);
+    color: var(--paper-ink);
+    outline:none;
+  }
+  .spell-input:focus{ border-color: var(--blue); }
+  .spell-input.correct{ border-color: var(--green); background: rgba(76,140,94,0.12); }
+  .spell-input.incorrect{ border-color: var(--red); background: rgba(184,74,62,0.12); }
+
+  .spell-feedback{
+    font-size: 13px;
+    min-height: 18px;
+    text-align:center;
+  }
+  .spell-feedback.correct{ color: var(--green-dark); }
+  .spell-feedback.incorrect{ color: var(--red-dark); }
+
+  .btn-submit{
+    background: var(--blue);
+    box-shadow: 0 4px 0 var(--blue-dark);
+    width:100%;
+  }
+  .btn-next{
+    background: var(--gold);
+    box-shadow: 0 4px 0 #9c7d38;
+    width:100%;
+    color: #1F2A33;
+  }
+
+  /* ---------- COMPLETION ---------- */
+  .complete{
+    text-align:center;
+    padding: 40px 20px;
+  }
+  .complete .big{
+    font-family:'Fraunces', serif;
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  .complete p{ color: var(--ink-muted); font-size:13px; margin-bottom: 26px; }
+
+  .btn-restart{
+    background: var(--gold);
+    color: #1F2A33;
+    box-shadow: 0 4px 0 #9c7d38;
+  }
+
+  @media (max-width: 420px){
+    .card-wrap{ height: 280px; }
+    .word{ font-size:24px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="eyebrow">ENGLISH VOCABULARY · PRACTICE MODULE</div>
+  <h1>Vocabulary Practice</h1>
+  <div class="course-lesson">Course 02, Lesson 01</div>
+  <div class="subtitle">This practice is made of <span id="item-count">0</span> items.</div>
+
+  <!-- MENU -->
+  <div class="menu" id="menu">
+    <div class="toc">
+      <button class="toc-item" onclick="startTask(1)">
+        <span class="toc-num">01</span>
+        <span class="toc-text">
+          <div class="toc-title">Flip flashcards</div>
+          <div class="toc-desc">Listen to the word, then flip the card to reveal the Hungarian meaning.</div>
+        </span>
+        <span class="toc-arrow">→</span>
+      </button>
+      <button class="toc-item" onclick="startTask(2)">
+        <span class="toc-num">02</span>
+        <span class="toc-text">
+          <div class="toc-title">Listen and spell</div>
+          <div class="toc-desc">Listen to the word and type the correct English spelling.</div>
+        </span>
+        <span class="toc-arrow">→</span>
+      </button>
+      <button class="toc-item" onclick="startTask(3)">
+        <span class="toc-num">03</span>
+        <span class="toc-text">
+          <div class="toc-title">Hungarian to English</div>
+          <div class="toc-desc">Read the Hungarian meaning and type the exact English word or phrase.</div>
+        </span>
+        <span class="toc-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TASK 1: FLASHCARDS -->
+  <div class="stage" id="stage1">
+    <div class="stage-header">
+      <button class="back-link" onclick="goToMenu()">← MENU</button>
+      <span class="round-tag" id="t1-round">1st round</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="t1-progress"></div></div>
+
+    <div id="t1-playarea">
+      <div class="card-wrap">
+        <div class="card" id="t1-card">
+          <div class="face front">
+            <div class="catalog-tab"><span>EN</span><span id="t1-index">001</span></div>
+            <div class="card-center">
+              <div class="word" id="t1-word">word</div>
+              <button class="speaker-btn" id="t1-speak" onclick="speakWord(currentWord(deck1, t1.queue, t1.pos), 't1-speak')">🔊</button>
+            </div>
+          </div>
+          <div class="face back">
+            <div class="catalog-tab"><span>HU</span><span id="t1-index-b">001</span></div>
+            <div class="card-center">
+              <div class="meaning" id="t1-meaning">jelentés</div>
+            </div>
+            <div class="card-footnote">Did you know the answer?</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-bar" id="t1-btnbar-front">
+        <div style="flex:1"></div>
+        <button class="btn btn-turn" onclick="flipCard1()">FLIP</button>
+        <div style="flex:1"></div>
+      </div>
+      <div class="btn-bar" id="t1-btnbar-back" style="display:none;">
+        <button class="btn btn-wrong btn-answer" onclick="answerCard1(false)">No, I wasn't correct.</button>
+        <button class="btn btn-turn" onclick="flipCard1()">FLIP</button>
+        <button class="btn btn-correct btn-answer" onclick="answerCard1(true)">Yes, I was correct.</button>
+      </div>
+    </div>
+
+    <div id="t1-complete" style="display:none;" class="complete">
+      <div class="big">Done! 🎉</div>
+      <p>You've correctly answered every card in this lesson.</p>
+      <button class="btn btn-restart" onclick="startTask(1)">START OVER</button>
+    </div>
+  </div>
+
+  <!-- TASK 2: SPELLING -->
+  <div class="stage" id="stage2">
+    <div class="stage-header">
+      <button class="back-link" onclick="goToMenu()">← MENU</button>
+      <span class="round-tag" id="t2-round">1st round</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="t2-progress"></div></div>
+    <p class="task-instruction">Listen to the word and type the correct English spelling.</p>
+
+    <div id="t2-playarea">
+      <div class="spell-panel">
+        <div class="catalog-tab" style="width:100%;"><span>LISTEN &amp; SPELL</span><span id="t2-index">001</span></div>
+        <button class="speaker-btn" id="t2-speak" onclick="speakWord(currentWord(deck2, t2.queue, t2.pos), 't2-speak')">🔊</button>
+        <input type="text" class="spell-input" id="t2-input" placeholder="type here" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="spell-feedback" id="t2-feedback"></div>
+        <button class="btn btn-submit" id="t2-submit-btn" onclick="t2Action()">CHECK</button>
+      </div>
+    </div>
+
+    <div id="t2-complete" style="display:none;" class="complete">
+      <div class="big">Done! 🎉</div>
+      <p>You've spelled every word correctly in this lesson.</p>
+      <button class="btn btn-restart" onclick="startTask(2)">START OVER</button>
+    </div>
+  </div>
+
+  <!-- TASK 3: HUNGARIAN -> ENGLISH -->
+  <div class="stage" id="stage3">
+    <div class="stage-header">
+      <button class="back-link" onclick="goToMenu()">← MENU</button>
+      <span class="round-tag" id="t3-round">1st round</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="t3-progress"></div></div>
+    <p class="task-instruction">Read the Hungarian meaning and type the exact English word or phrase.</p>
+
+    <div id="t3-playarea">
+      <div class="spell-panel">
+        <div class="catalog-tab" style="width:100%;"><span>HU → EN</span><span id="t3-index">001</span></div>
+        <div class="meaning" id="t3-meaning">jelentés</div>
+        <input type="text" class="spell-input" id="t3-input" placeholder="type here" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="spell-feedback" id="t3-feedback"></div>
+        <button class="btn btn-submit" id="t3-submit-btn" onclick="t3Action()">CHECK</button>
+      </div>
+    </div>
+
+    <div id="t3-complete" style="display:none;" class="complete">
+      <div class="big">Done! 🎉</div>
+      <p>You've typed every word exactly right in this lesson.</p>
+      <button class="btn btn-restart" onclick="startTask(3)">START OVER</button>
+    </div>
+  </div>
+
+<script>
+  // ============================================================
+  // LECKE ADATAI — BN-C02-L01_W (Course 02, Lesson 01)
+  // Formátum: { id: "hangfájl-név kiterjesztés nélkül", en: "...", hu: "..." }
+  // A hangfájlok innen töltődnek be: AUDIO_BASE_URL + id + ".mp3"
+  // ============================================================
+  const AUDIO_BASE_URL = "https://gra-and-gyo.github.io/lernado_audio/BN-C02-L01_W/";
+
+  const glossary = [
+    { id: "BN_C02_L01_W01", en: "a breath of fresh air",          hu: "üdítő változatosság" },
+    { id: "BN_C02_L01_W02", en: "easy on the eye",                hu: "kellemes / jó ránézni" },
+    { id: "BN_C02_L01_W03", en: "dense",                          hu: "sűrű, tömény" },
+    { id: "BN_C02_L01_W04", en: "bathtub",                        hu: "fürdőkád" },
+    { id: "BN_C02_L01_W05", en: "custom made",                    hu: "méretre / egyénileg gyártott" },
+    { id: "BN_C02_L01_W06", en: "inflation",                      hu: "infláció, pénzromlás" },
+    { id: "BN_C02_L01_W07", en: "compound interest",              hu: "kamatos kamat" },
+    { id: "BN_C02_L01_W08", en: "emergency fund",                 hu: "(pénzügyi) vésztartalék" },
+    { id: "BN_C02_L01_W09", en: "diversification",                hu: "diverzifikáció (változatossá tétel, kockázatmegosztás, portfólióbővítés)" },
+    { id: "BN_C02_L01_W10", en: "high-interest debt",             hu: "magas kamatozású adósság" },
+    { id: "BN_C02_L01_W11", en: "ownership",                      hu: "tulajdonlás" },
+    { id: "BN_C02_L01_W12", en: "tax-free investment account",    hu: "adómentes befektetési számla" },
+    { id: "BN_C02_L01_W13", en: "individual stocks",              hu: "egyéni részvények" },
+    { id: "BN_C02_L01_W14", en: "barrier to entry",               hu: "belépési korlát / küszöb" },
+    { id: "BN_C02_L01_W15", en: "expenses",                       hu: "kiadások" },
+    { id: "BN_C02_L01_W16", en: "accessible",                     hu: "hozzáférhető" },
+    { id: "BN_C02_L01_W17", en: "returns",                        hu: "hozamok" },
+    { id: "BN_C02_L01_W18", en: "previous",                       hu: "előző" },
+    { id: "BN_C02_L01_W19", en: "spread risk",                    hu: "szétteríteni a kockázatot" },
+    { id: "BN_C02_L01_W20", en: "assets",                         hu: "javak, eszközök" },
+    { id: "BN_C02_L01_W21", en: "property",                       hu: "ingatlan" },
+    { id: "BN_C02_L01_W22", en: "cost",                           hu: "költség" },
+    { id: "BN_C02_L01_W23", en: "profit",                         hu: "nyereség" },
+    { id: "BN_C02_L01_W24", en: "warn against something",         hu: "figyelmeztetni valamire" },
+    { id: "BN_C02_L01_W25", en: "outcome",                        hu: "eredmény" }
+  ];
+
+  document.getElementById('item-count').textContent = glossary.length;
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function currentWord(deck, queue, pos){
+    if(!queue || pos >= queue.length) return null;
+    return deck[queue[pos]];
+  }
+
+  function speakWord(item, btnId){
+    if(!item) return;
+    const btn = btnId ? document.getElementById(btnId) : null;
+    const audio = new Audio(AUDIO_BASE_URL + item.id + '.mp3');
+    if(btn) btn.classList.add('speaking');
+    const clear = () => { if(btn) btn.classList.remove('speaking'); };
+    audio.addEventListener('ended', clear);
+    audio.addEventListener('error', () => {
+      clear();
+      console.warn('Nem sikerült betölteni a hangfájlt:', audio.src);
+    });
+    audio.play().catch(() => clear());
+  }
+
+  // Enter billentyű: aktív feladatban (2. vagy 3.) elvégzi az aktuális
+  // lépést (CHECK vagy NEXT), attól függetlenül, hogy a szövegmező
+  // fókuszban van-e — mobilon a gombra koppintás ugyanígy működik.
+  let t2Action = null;
+  let t3Action = null;
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    if(document.getElementById('stage2').classList.contains('active') && t2Action){
+      e.preventDefault();
+      t2Action();
+    } else if(document.getElementById('stage3').classList.contains('active') && t3Action){
+      e.preventDefault();
+      t3Action();
+    }
+  });
+
+  function ordinalSuffix(n){
+    const j = n % 10, k = n % 100;
+    if(j === 1 && k !== 11) return 'st';
+    if(j === 2 && k !== 12) return 'nd';
+    if(j === 3 && k !== 13) return 'rd';
+    return 'th';
+  }
+  function ordinalRoundHtml(n){
+    return n + '<sup>' + ordinalSuffix(n) + '</sup> round';
+  }
+
+  function goToMenu(){
+    document.getElementById('menu').style.display = 'block';
+    document.getElementById('stage1').classList.remove('active');
+    document.getElementById('stage2').classList.remove('active');
+    document.getElementById('stage3').classList.remove('active');
+  }
+
+  // ============================================================
+  // TASK 1: FLASHCARDS
+  // ============================================================
+  const deck1 = glossary;
+  let t1 = { queue: [], pos: 0, retry: [], correctCount: 0, round: 1, flipped: false };
+
+  function startTask(n){
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('stage1').classList.remove('active');
+    document.getElementById('stage2').classList.remove('active');
+    document.getElementById('stage3').classList.remove('active');
+
+    if(n === 1){
+      document.getElementById('stage1').classList.add('active');
+      document.getElementById('t1-playarea').style.display = 'block';
+      document.getElementById('t1-complete').style.display = 'none';
+      t1 = { queue: shuffle(deck1.map((_,i)=>i)), pos: 0, retry: [], correctCount: 0, round: 1, flipped: false };
+      renderCard1();
+    } else if(n === 2){
+      document.getElementById('stage2').classList.add('active');
+      document.getElementById('t2-playarea').style.display = 'block';
+      document.getElementById('t2-complete').style.display = 'none';
+      t2 = { queue: shuffle(deck2.map((_,i)=>i)), pos: 0, retry: [], correctCount: 0, round: 1 };
+      renderCard2();
+    } else if(n === 3){
+      document.getElementById('stage3').classList.add('active');
+      document.getElementById('t3-playarea').style.display = 'block';
+      document.getElementById('t3-complete').style.display = 'none';
+      t3 = { queue: shuffle(deck3.map((_,i)=>i)), pos: 0, retry: [], correctCount: 0, round: 1 };
+      renderCard3();
+    }
+  }
+
+  function renderCard1(){
+    const item = currentWord(deck1, t1.queue, t1.pos);
+    if(!item){
+      if(t1.retry.length > 0){
+        t1.round += 1;
+        t1.queue = shuffle(t1.retry);
+        t1.retry = [];
+        t1.pos = 0;
+        renderCard1();
+        return;
+      } else {
+        document.getElementById('t1-playarea').style.display = 'none';
+        document.getElementById('t1-complete').style.display = 'block';
+        return;
+      }
+    }
+    document.getElementById('t1-word').textContent = item.en;
+    document.getElementById('t1-meaning').textContent = item.hu;
+    const num = String(t1.queue[t1.pos] + 1).padStart(3,'0');
+    document.getElementById('t1-index').textContent = num;
+    document.getElementById('t1-index-b').textContent = num;
+    document.getElementById('t1-round').innerHTML = ordinalRoundHtml(t1.round);
+    document.getElementById('t1-card').classList.remove('flipped');
+    t1.flipped = false;
+    document.getElementById('t1-btnbar-front').style.display = 'flex';
+    document.getElementById('t1-btnbar-back').style.display = 'none';
+
+    const total = deck1.length;
+    const pct = Math.round((t1.correctCount / total) * 100);
+    document.getElementById('t1-progress').style.width = pct + '%';
+
+    speakWord(item, 't1-speak');
+  }
+
+  function flipCard1(){
+    t1.flipped = !t1.flipped;
+    document.getElementById('t1-card').classList.toggle('flipped', t1.flipped);
+    document.getElementById('t1-btnbar-front').style.display = t1.flipped ? 'none' : 'flex';
+    document.getElementById('t1-btnbar-back').style.display = t1.flipped ? 'flex' : 'none';
+    if(!t1.flipped){
+      speakWord(currentWord(deck1, t1.queue, t1.pos), 't1-speak');
+    }
+  }
+
+  function answerCard1(wasCorrect){
+    const idx = t1.queue[t1.pos];
+    if(wasCorrect){
+      t1.correctCount += 1;
+    } else {
+      t1.retry.push(idx);
+    }
+    t1.pos += 1;
+    renderCard1();
+  }
+
+  // ============================================================
+  // TASK 2: LISTEN & SPELL
+  // ============================================================
+  const deck2 = glossary;
+  let t2 = { queue: [], pos: 0, retry: [], correctCount: 0, round: 1 };
+  let t2locked = false;
+
+  function renderCard2(){
+    const item = currentWord(deck2, t2.queue, t2.pos);
+    const input = document.getElementById('t2-input');
+    const feedback = document.getElementById('t2-feedback');
+    const submitBtn = document.getElementById('t2-submit-btn');
+    t2locked = false;
+
+    if(!item){
+      if(t2.retry.length > 0){
+        t2.round += 1;
+        t2.queue = shuffle(t2.retry);
+        t2.retry = [];
+        t2.pos = 0;
+        renderCard2();
+        return;
+      } else {
+        document.getElementById('t2-playarea').style.display = 'none';
+        document.getElementById('t2-complete').style.display = 'block';
+        return;
+      }
+    }
+
+    input.value = '';
+    input.className = 'spell-input';
+    input.disabled = false;
+    feedback.textContent = '';
+    feedback.className = 'spell-feedback';
+    submitBtn.textContent = 'CHECK';
+    submitBtn.className = 'btn btn-submit';
+    t2Action = submitSpelling;
+
+    const num = String(t2.queue[t2.pos] + 1).padStart(3,'0');
+    document.getElementById('t2-index').textContent = num;
+    document.getElementById('t2-round').innerHTML = ordinalRoundHtml(t2.round);
+
+    const total = deck2.length;
+    const pct = Math.round((t2.correctCount / total) * 100);
+    document.getElementById('t2-progress').style.width = pct + '%';
+
+    setTimeout(() => speakWord(item, 't2-speak'), 200);
+    input.focus();
+  }
+
+  function submitSpelling(){
+    if(t2locked) return;
+    const item = currentWord(deck2, t2.queue, t2.pos);
+    const input = document.getElementById('t2-input');
+    const feedback = document.getElementById('t2-feedback');
+    const submitBtn = document.getElementById('t2-submit-btn');
+    const guess = input.value.trim().toLowerCase();
+    const correct = item.en.trim().toLowerCase();
+    const isCorrect = guess === correct;
+
+    t2locked = true;
+    input.disabled = true;
+
+    if(isCorrect){
+      input.classList.add('correct');
+      feedback.textContent = 'Correct!';
+      feedback.className = 'spell-feedback correct';
+      t2.correctCount += 1;
+    } else {
+      input.classList.add('incorrect');
+      feedback.textContent = 'Correct spelling: ' + item.en;
+      feedback.className = 'spell-feedback incorrect';
+      t2.retry.push(t2.queue[t2.pos]);
+    }
+
+    submitBtn.textContent = 'NEXT';
+    submitBtn.className = 'btn btn-next';
+    t2Action = () => { t2.pos += 1; renderCard2(); };
+  }
+
+  // ============================================================
+  // TASK 3: HUNGARIAN -> ENGLISH (character-exact match)
+  // ============================================================
+  const deck3 = glossary;
+  let t3 = { queue: [], pos: 0, retry: [], correctCount: 0, round: 1 };
+  let t3locked = false;
+
+  function renderCard3(){
+    const item = currentWord(deck3, t3.queue, t3.pos);
+    const input = document.getElementById('t3-input');
+    const feedback = document.getElementById('t3-feedback');
+    const submitBtn = document.getElementById('t3-submit-btn');
+    t3locked = false;
+
+    if(!item){
+      if(t3.retry.length > 0){
+        t3.round += 1;
+        t3.queue = shuffle(t3.retry);
+        t3.retry = [];
+        t3.pos = 0;
+        renderCard3();
+        return;
+      } else {
+        document.getElementById('t3-playarea').style.display = 'none';
+        document.getElementById('t3-complete').style.display = 'block';
+        return;
+      }
+    }
+
+    document.getElementById('t3-meaning').textContent = item.hu;
+    input.value = '';
+    input.className = 'spell-input';
+    input.disabled = false;
+    feedback.textContent = '';
+    feedback.className = 'spell-feedback';
+    submitBtn.textContent = 'CHECK';
+    submitBtn.className = 'btn btn-submit';
+    t3Action = submitSpelling3;
+
+    const num = String(t3.queue[t3.pos] + 1).padStart(3,'0');
+    document.getElementById('t3-index').textContent = num;
+    document.getElementById('t3-round').innerHTML = ordinalRoundHtml(t3.round);
+
+    const total = deck3.length;
+    const pct = Math.round((t3.correctCount / total) * 100);
+    document.getElementById('t3-progress').style.width = pct + '%';
+
+    input.focus();
+  }
+
+  function submitSpelling3(){
+    if(t3locked) return;
+    const item = currentWord(deck3, t3.queue, t3.pos);
+    const input = document.getElementById('t3-input');
+    const feedback = document.getElementById('t3-feedback');
+    const submitBtn = document.getElementById('t3-submit-btn');
+    // Karakterpontos egyezés: csak a szó eleji/végi szóközöket vágjuk le,
+    // kis- és nagybetű, ékezet, minden egyéb karakter számít.
+    const guess = input.value.trim();
+    const correct = item.en.trim();
+    const isCorrect = guess === correct;
+
+    t3locked = true;
+    input.disabled = true;
+
+    if(isCorrect){
+      input.classList.add('correct');
+      feedback.textContent = 'Correct!';
+      feedback.className = 'spell-feedback correct';
+      t3.correctCount += 1;
+    } else {
+      input.classList.add('incorrect');
+      feedback.textContent = 'Correct answer: ' + item.en;
+      feedback.className = 'spell-feedback incorrect';
+      t3.retry.push(t3.queue[t3.pos]);
+    }
+
+    speakWord(item, null);
+
+    submitBtn.textContent = 'NEXT';
+    submitBtn.className = 'btn btn-next';
+    t3Action = () => { t3.pos += 1; renderCard3(); };
+  }
+</script>
+</body>
+</html>
